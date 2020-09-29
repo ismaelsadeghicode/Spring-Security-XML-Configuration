@@ -9,18 +9,40 @@
                http://www.springframework.org/schema/util
                http://www.springframework.org/schema/util/spring-util-4.0.xsd">
 
-    <http auto-config="true">
-<!--        <intercept-url pattern="/admin**" access="hasRole('ADMIN')"/>-->
-        <intercept-url pattern="/admin**" 		access="ROLE_USER" />
-<!--                <csrf disabled="true"/>-->
+    <!--    <http auto-config="true">-->
+    <!--        <intercept-url pattern="/admin**" 		access="ROLE_USER" />-->
+    <!--&lt;!&ndash;                <csrf disabled="true"/>&ndash;&gt;-->
+    <!--    </http>-->
+
+    <!--    <authentication-manager>-->
+    <!--        <authentication-provider>-->
+    <!--            <user-service>-->
+    <!--                <user name="user" password="user" authorities="ROLE_USER" />-->
+    <!--            </user-service>-->
+    <!--        </authentication-provider>-->
+    <!--    </authentication-manager>-->
+
+    <global-method-security pre-post-annotations="enabled"/>
+
+    <http pattern="/api/login" security="none"/>
+    <http pattern="/api/signup" security="none"/>
+
+    <http pattern="/api/**" entry-point-ref="restAuthenticationEntryPoint" create-session="stateless">
+        <!--        <csrf disabled="true"/>  -->
+        <custom-filter before="FORM_LOGIN_FILTER" ref="jwtAuthenticationFilter"/>
     </http>
 
-    <authentication-manager>
-        <authentication-provider>
-            <user-service>
-                <user name="user" password="user" authorities="ROLE_USER" />
-            </user-service>
-        </authentication-provider>
+    <beans:bean id="jwtAuthenticationFilter" class="net.dpco.crm.cc.config.JwtAuthenticationFilter">
+        <beans:property name="authenticationManager" ref="authenticationManager"/>
+        <beans:property name="authenticationSuccessHandler" ref="jwtAuthenticationSuccessHandler"/>
+    </beans:bean>
+
+    <authentication-manager alias="authenticationManager">
+        <authentication-provider ref="jwtAuthenticationProvider"/>
     </authentication-manager>
+
+    <beans:bean id="restAuthenticationEntryPoint" class="net.dpco.crm.cc.config.RestAuthenticationEntryPoint"/>
+    <beans:bean id="jwtAuthenticationProvider" class="net.dpco.crm.cc.config.JwtAuthenticationProvider"/>
+    <beans:bean id="jwtAuthenticationSuccessHandler" class="net.dpco.crm.cc.config.JwtAuthenticationSuccessHandler"/>
 
 </beans:beans>
